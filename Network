@@ -1,0 +1,82 @@
+#On-Premise Network: 192.168.10.0/24
+#AVD Hub Vnet: 10.16.0.0/16
+#AVD Hub Subnet: 10.16.16.0/20
+#Gateway Subnet 10.16.32.0/20
+#DMZ Subnet 10.16.48.0/20
+#Active Directory Subnet 10.16.80.0/20
+#AVD Spoke Vnet: 10.17.0.0/16
+#AVD Spoke Subnet: 10.17.0.0/20
+#DevBox Spoke Vnet: 10.18.0.0/16
+#Devbox Subnet:10.18.0.0/20
+
+
+# Variables
+$resourceGroupName = "1-703f1b70-playground-sandbox"
+$location = "East US 2"
+
+# Create Resource Group (if not already created)
+# New-AzResourceGroup -Name $resourceGroupName -Location $location
+
+# Create Hub Virtual Network
+$vnetNameHub = "AVD-Hub-Vnet"
+$subnetNameHub = "AVD-HubSubnet"
+$subnetNameGateway = "Gateway-Subnet"
+$subnetNameDMZ = "DMZ-Subnet"
+$subnetNameAD = "AD-Subnet"
+
+# Create Hub Virtual Network
+$vnetHub = New-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name $vnetNameHub -AddressPrefix "10.16.0.0/16" -Location $location
+
+# Create Subnets for Hub
+$hubSubnet = Add-AzVirtualNetworkSubnetConfig -Name $subnetNameHub -AddressPrefix "10.16.16.0/20" -VirtualNetwork $vnetHub
+$gatewaySubnet = Add-AzVirtualNetworkSubnetConfig -Name $subnetNameGateway -AddressPrefix "10.16.32.0/20" -VirtualNetwork $vnetHub
+$dmzSubnet = Add-AzVirtualNetworkSubnetConfig -Name $subnetNameDMZ -AddressPrefix "10.16.48.0/20" -VirtualNetwork $vnetHub
+$adSubnet = Add-AzVirtualNetworkSubnetConfig -Name $subnetNameAD -AddressPrefix "10.16.80.0/20" -VirtualNetwork $vnetHub
+
+# Associate Subnets with Hub Virtual Network
+$vnetHub.Subnets = @($hubSubnet, $gatewaySubnet, $dmzSubnet, $adSubnet)
+Set-AzVirtualNetwork -VirtualNetwork $vnetHub
+
+# Get the Subnet Id for Gateway Subnet
+$gatewaySubnetId = $vnetHub.Subnets | Where-Object { $_.Name -eq $subnetNameGateway }.Id
+
+# Create Gateway Subnet for Hub
+$gwSubnet = New-AzVirtualNetworkSubnetConfig -Name $subnetNameGateway -AddressPrefix "10.16.32.0/20"
+Set-AzVirtualNetwork -VirtualNetwork $vnetHub -GatewaySubnet $gwSubnet
+
+# Display Hub Virtual Network details
+$vnetHub
+
+# Create AVD Spoke Virtual Network
+$vnetNameSpoke = "AVD-Spoke-Vnet"
+$subnetNameSpoke = "AVD-Spoke-Subnet"
+
+# Create AVD Spoke Virtual Network
+$vnetSpoke = New-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name $vnetNameSpoke -AddressPrefix "10.17.0.0/16" -Location $location
+
+# Create Subnet for AVD Spoke
+$AVDSpokeSubnet = Add-AzVirtualNetworkSubnetConfig -Name $subnetNameSpoke -AddressPrefix "10.17.0.0/20" -VirtualNetwork $vnetSpoke
+
+# Associate Subnet with AVD Spoke Virtual Network
+$vnetSpoke.Subnets = @($AVDSpokeSubnet)
+Set-AzVirtualNetwork -VirtualNetwork $vnetSpoke
+
+# Display AVD Spoke Virtual Network details
+$vnetSpoke
+
+# Create DevBox Spoke Virtual Network
+$vnetNameDevBox = "DevBox-Spoke-Vnet"
+$subnetNameDevBox = "DevBox-Subnet"
+
+# Create DevBox Spoke Virtual Network
+$vnetDevBox = New-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name $vnetNameDevBox -AddressPrefix "10.18.0.0/16" -Location $location
+
+# Create Subnet for DevBox Spoke
+$DevBoxSubnet = Add-AzVirtualNetworkSubnetConfig -Name $subnetNameDevBox -AddressPrefix "10.18.0.0/20" -VirtualNetwork $vnetDevBox
+
+# Associate Subnet with DevBox Spoke Virtual Network
+$vnetDevBox.Subnets = @($DevBoxSubnet)
+Set-AzVirtualNetwork -VirtualNetwork $vnetDevBox
+
+# Display DevBox Spoke Virtual Network details
+$vnetDevBox
