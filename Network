@@ -11,7 +11,7 @@
 
 
 # Variables
-$resourceGroupName = "1-703f1b70-playground-sandbox"
+$resourceGroupName = "1-a53ccc87-playground-sandbox"
 $location = "East US 2"
 
 # Create Resource Group (if not already created)
