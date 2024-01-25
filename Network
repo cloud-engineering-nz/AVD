@@ -21,7 +21,7 @@
 #AVD Hub Subnet: 10.16.16.0/20
 #Gateway Subnet 10.16.32.0/27
 #DMZ Subnet 10.16.48.0/20
-#Active Directory Subnet 10.16.80.0/20
+#Spare-subnet-future-growth 10.16.80.0/20
 #AVD Spoke Vnet: 10.17.0.0/16
 #AVD Spoke Subnet: 10.17.0.0/20
 #DevBox Spoke Vnet: 10.18.0.0/16
@@ -68,14 +68,14 @@
 ##############################
 
 
-# Create main hub vnet & Subnets: AVD Hub Subnet: 10.16.16.0/20 DMZ Subnet 10.16.48.0/20 Gateway Subnet 10.16.32.0/27 Active Directory Subnet 10.16.80.0/20
+# Create main hub vnet & Subnets: AVD Hub Subnet: 10.16.16.0/20 DMZ Subnet 10.16.48.0/20 Gateway Subnet 10.16.32.0/27 Spare Subnet For Future Growth 10.16.80.0/20
 az network vnet create --name AVD-Hub-Vnet01 --resource-group $rg --location $location --address-prefixes 10.16.0.0/16
 
 # Create subnets
 az network vnet subnet create --name AVD-HubSubnet01 --resource-group $rg --vnet-name AVD-Hub-Vnet01 --address-prefix 10.16.0.0/20
 az network vnet subnet create --name DMZ-Subnet02 --resource-group $rg --vnet-name AVD-Hub-Vnet01 --address-prefix 10.16.48.0/20
 az network vnet subnet create --name Gateway-Subnet03 --resource-group $rg --vnet-name AVD-Hub-Vnet01 --address-prefix 10.16.32.0/27
-az network vnet subnet create --name AD-Subnet04 --resource-group $rg --vnet-name AVD-Hub-Vnet01 --address-prefix 10.16.80.0/20
+az network vnet subnet create --name Spare-Subnet04 --resource-group $rg --vnet-name AVD-Hub-Vnet01 --address-prefix 10.16.80.0/20
 
 
 # Create Hub Nework Security Groups
@@ -90,7 +90,7 @@ az network nsg create -g $rg -n DMZ-NSG-01
 az network nsg create -g $rg -n Gateway-NSG-01
 
 # Create AD-NSG-01
-az network nsg create -g $rg -n AD-NSG-01
+az network nsg create -g $rg Spare-NSG-01
 
 # Associate AVD-Hub-NSG-01 with AVD Hub Subnet in AVD Hub Vnet
 az network vnet subnet update --resource-group $rg --vnet-name AVD-Hub-Vnet01 --name AVD-HubSubnet01 --network-security-group AVD-Hub-NSG-01
@@ -101,8 +101,8 @@ az network vnet subnet update --resource-group $rg --vnet-name AVD-Hub-Vnet01 --
 # Associate Gateway-NSG-01 with Gateway-Subnet03 in AVD Hub Vnet
 az network vnet subnet update --resource-group $rg --vnet-name AVD-Hub-Vnet01 --name Gateway-Subnet03 --network-security-group Gateway-NSG-01
 
-# Associate AD-NSG-01 with AD-Subnet04 in AVD Hub Vnet
-az network vnet subnet update --resource-group $rg --vnet-name AVD-Hub-Vnet01 --name AD-Subnet04 --network-security-group AD-NSG-01
+# Associate Spare-NSG-01 with AD-Subnet04 in AVD Hub Vnet
+az network vnet subnet update --resource-group $rg --vnet-name AVD-Hub-Vnet01 --name Spare-Subnet04 --network-security-group AD-NSG-01
 
 
 # Create AVD-Hub-NSG-01 Rules allow SSH & RDP From Office|HTTP & HTTPS Open
@@ -127,10 +127,10 @@ az network nsg rule create --resource-group $rg --nsg-name Gateway-NSG-01 --name
 az network nsg rule create --resource-group $rg --nsg-name Gateway-NSG-01 --name allowRdp --priority 140 --destination-port-ranges 3389 --source-address-prefixes '111.69.29.130' --access Allow --protocol Tcp
 
 # Create AD-NSG-01 Rules allow SSH & RDP From Office|HTTP & HTTPS Open
-az network nsg rule create --resource-group $rg --nsg-name AD-NSG-01 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name AD-NSG-01 --name allowHttps --priority 120 --destination-port-ranges 443 --source-address-prefixes '*' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name AD-NSG-01 --name allowSsh --priority 130 --destination-port-ranges 22 --source-address-prefixes '111.69.29.130' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name AD-NSG-01 --name allowRdp --priority 140 --destination-port-ranges 3389 --source-address-prefixes '111.69.29.130' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name Spare-NSG-01 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name Spare-NSG-01 --name allowHttps --priority 120 --destination-port-ranges 443 --source-address-prefixes '*' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name Spare-NSG-01 --name allowSsh --priority 130 --destination-port-ranges 22 --source-address-prefixes '111.69.29.130' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name Spare-NSG-01 --name allowRdp --priority 140 --destination-port-ranges 3389 --source-address-prefixes '111.69.29.130' --access Allow --protocol Tcp
 
 
 
